@@ -3,24 +3,57 @@ library(trackeR)
 library(FITfileR)
 library(lubridate)
 
-treadmill_session
-treadmill_summary_day %>% 
-  filter(Laps != 'Summary') %>% 
-  mutate(Laps = as.integer(Laps)) %>% 
-  ggplot(aes(x = Laps, y = `Avg HR`, color = factor(as.Date(timestamp)))) +
-  geom_point() + geom_line() + 
-  labs(color = 'Date') +
-  theme_bw()
+# Data from: https://connect.garmin.com/modern/
+# Read fit files: remotes::install_github("grimbough/FITfileR")
+treadmill_summary_day_new <- read_csv("data/activity_9401871543.csv", 
+                 col_types = cols(Laps = col_character(), 
+                                  Time = col_character(), `Cumulative Time` = col_character(), 
+                                  `Avg Pace` = col_character(), `Total Ascent` = col_skip(), 
+                                  `Total Descent` = col_skip(), `Avg Power` = col_skip(), 
+                                  `Avg W/kg` = col_skip(), `Max Power` = col_skip(), 
+                                  `Max W/kg` = col_skip(), `Avg Ground Contact Time` = col_skip(), 
+                                  `Avg GCT Balance` = col_skip(), `Avg Vertical Oscillation` = col_skip(), 
+                                  `Avg Vertical Ratio` = col_skip(), 
+                                  `Best Pace` = col_character(), `Max Run Cadence` = col_double(), 
+                                  `Moving Time` = col_character(), 
+                                  `Avg Moving Pace` = col_character()))
 
 
-treadmill_fitday_records %>% 
-  mutate(Date = as.Date(timestamp)) %>% 
-  group_by(Date) %>% 
-  mutate(Time = as.numeric(timestamp - min(timestamp, na.rm = TRUE))) %>% 
-  ggplot(aes(x = Time, y = heart_rate, color = factor(Date))) +
-  geom_point(alpha = .25) + 
-  geom_smooth(method = 'loess', formula = 'y ~ x', span = .5, se = FALSE) +
-  theme_bw() + labs(y = 'Heart Rate', color = 'Date')
+
+treadmill_fitday <- readFitFile(fileName = "data/9401871543_ACTIVITY.fit")
+
+
+treadmill_fitday_records_new <- records(treadmill_fitday) %>% 
+  bind_rows() %>% 
+  arrange(timestamp)
+treadmill_fitday_records <- bind_rows(treadmill_fitday_records, treadmill_fitday_records_new)
+write_rds(treadmill_fitday_records, file = "data/treadmill_fitday_records.rds")
+
+treadmill_session_new <- getMessagesByType(treadmill_fitday, "session")
+treadmill_session <- bind_rows(treadmill_session, treadmill_session_new)
+write_rds(treadmill_session, file = "data/treadmill_session.rds")
+
+
+treadmill_summary_day_new$timestamp = treadmill_session_new$timestamp
+treadmill_summary_day <- bind_rows(treadmill_summary_day, treadmill_summary_day_new)
+write_rds(treadmill_summary_day, file = "data/treadmill_summary_day.rds")
+
+write_rds(treadmill_fitday, file = paste0("data/treadmill_fitday", str_remove_all(as.Date(treadmill_session_new$timestamp), "-"),".rds"))
+
+
+ColAttr <- function(x, attrC, ifIsNull) {
+  # Returns column attribute named in attrC, if present, else isNullC.
+  atr <- attr(x, attrC, exact = TRUE)
+  atr <- if (is.null(atr)) {ifIsNull} else {atr}
+  atr
+}
+
+tibble_units <- treadmill_session_new %>% 
+  map(.f =  ColAttr, attrC="units", ifIsNull = "") %>% 
+  as_tibble() %>% 
+    pivot_longer(cols = everything(), names_to = "uariable", values_to = "unit")
+
+#write_rds(tibble_units, file = "data/tibble_units.rds")
 
 # treadmill_fitday_records_2 %>% ggplot() +
 #   geom_point(aes(x = timestamp, y = distance))
