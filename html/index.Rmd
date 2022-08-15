@@ -1,0 +1,66 @@
+---
+title: "Garmin Phoenix 5 data and analysis"
+author: "André Leite"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+
+<!-- Para deixar fundo no rpubs.com branco como deveria ser... -->
+<style>
+body { background-color: white; }
+pre, pre:not([class]) { background-color: white; }
+</style>
+<!-- Fim de "Para deixar fundo no rpubs.com branco como deveria ser..." -->
+
+
+## Preliminares
+
+### Packages used
+
+```{r packages}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(kableExtra))
+suppressPackageStartupMessages(library(lubridate))
+suppressPackageStartupMessages(library(furrr))
+suppressPackageStartupMessages(library(FITfileR))
+```
+
+### Data
+
+```{r}
+treadmill_summary_day <- read_rds("../data/treadmill_summary_day.rds")
+treadmill_fitday_records <- read_rds("../data/treadmill_fitday_records.rds")
+```
+
+
+
+
+```{r}
+treadmill_summary_day %>% 
+  filter(Laps != 'Summary') %>% 
+  mutate(Laps = as.integer(Laps)) %>% 
+  ggplot(aes(x = Laps, y = `Avg HR`, color = factor(as.Date(timestamp)))) +
+  geom_point() + geom_line() + 
+  labs(color = 'Date') +
+  theme_bw()
+```
+
+
+
+```{r}
+treadmill_fitday_records %>% 
+  mutate(Date = as.Date(timestamp)) %>% 
+  group_by(Date) %>% 
+  mutate(Time = as.numeric(timestamp - min(timestamp, na.rm = TRUE))) %>% 
+  ggplot(aes(x = Time, y = heart_rate, color = factor(Date))) +
+  geom_point(alpha = .25) + 
+  geom_smooth(method = 'loess', formula = 'y ~ x', span = .5, se = FALSE) +
+  theme_bw() + labs(y = 'Heart Rate', color = 'Date')
+
+```
+
