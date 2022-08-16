@@ -3,9 +3,13 @@ library(trackeR)
 library(FITfileR)
 library(lubridate)
 
+treadmill_summary_day <- read_rds("data/treadmill_summary_day.rds") %>% distinct()
+treadmill_fitday_records <- read_rds("data/treadmill_fitday_records.rds") %>% distinct()
+treadmill_session <- read_rds("data/treadmill_session.rds") %>% distinct()
+
 # Data from: https://connect.garmin.com/modern/
 # Read fit files: remotes::install_github("grimbough/FITfileR")
-treadmill_summary_day_new <- read_csv("data/activity_9401871543.csv", 
+treadmill_summary_day_new <- read_csv("data/activity_9410793936.csv", 
                  col_types = cols(Laps = col_character(), 
                                   Time = col_character(), `Cumulative Time` = col_character(), 
                                   `Avg Pace` = col_character(), `Total Ascent` = col_skip(), 
@@ -20,7 +24,7 @@ treadmill_summary_day_new <- read_csv("data/activity_9401871543.csv",
 
 
 
-treadmill_fitday <- readFitFile(fileName = "data/9401871543_ACTIVITY.fit")
+treadmill_fitday <- readFitFile(fileName = "data/9410793936_ACTIVITY.fit")
 
 
 treadmill_fitday_records_new <- records(treadmill_fitday) %>% 
@@ -41,12 +45,16 @@ write_rds(treadmill_summary_day, file = "data/treadmill_summary_day.rds")
 write_rds(treadmill_fitday, file = paste0("data/treadmill_fitday", str_remove_all(as.Date(treadmill_session_new$timestamp), "-"),".rds"))
 
 
+rm(list = grep("_new", ls(), value = TRUE))
+
+
 ColAttr <- function(x, attrC, ifIsNull) {
   # Returns column attribute named in attrC, if present, else isNullC.
   atr <- attr(x, attrC, exact = TRUE)
   atr <- if (is.null(atr)) {ifIsNull} else {atr}
   atr
 }
+
 
 tibble_units <- treadmill_session_new %>% 
   map(.f =  ColAttr, attrC="units", ifIsNull = "") %>% 
