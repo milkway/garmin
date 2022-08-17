@@ -12,6 +12,8 @@ treadmill_summary_day %>%
   labs(color = 'Date') +
   theme_bw()
 
+# Dia 16: Program 1 3x
+
 
 treadmill_fitday_records %>% 
   mutate(Date = as.Date(timestamp)) %>% 
@@ -21,6 +23,19 @@ treadmill_fitday_records %>%
   geom_point(alpha = .25) + 
   geom_smooth(method = 'loess', formula = 'y ~ x', span = .5, se = FALSE) +
   theme_bw() + labs(y = 'Heart Rate', color = 'Date')
+
+
+treadmill_fitday_records %>% 
+  mutate(Date = as.Date(timestamp)) %>% 
+  filter(Date >= "2022-08-16") %>% 
+  group_by(Date) %>% 
+  mutate(Time = as.numeric(timestamp - min(timestamp, na.rm = TRUE))) %>% 
+  ggplot(aes(x = Time, y = heart_rate, color = factor(Date))) +
+  geom_point(alpha = .25) + 
+  geom_smooth(method = 'loess', formula = 'y ~ x', span = .25, se = FALSE) +
+  theme_bw() + labs(y = 'Heart Rate', color = 'Date')
+
+
 
 # treadmill_fitday_records_2 %>% ggplot() +
 #   geom_point(aes(x = timestamp, y = distance))
