@@ -6,6 +6,16 @@ library(lubridate)
 treadmill_session
 treadmill_summary_day %>% 
   filter(Laps != 'Summary') %>% 
+  filter(as.Date(timestamp) <= "2022-08-15") %>% 
+  mutate(Laps = as.integer(Laps)) %>% 
+  ggplot(aes(x = Laps, y = `Avg HR`, color = factor(as.Date(timestamp)))) +
+  geom_point() + geom_line() + 
+  labs(color = 'Date') +
+  theme_bw()
+
+treadmill_summary_day %>% 
+  filter(Laps != 'Summary') %>% 
+  filter(as.Date(timestamp) > "2022-08-15") %>% 
   mutate(Laps = as.integer(Laps)) %>% 
   ggplot(aes(x = Laps, y = `Avg HR`, color = factor(as.Date(timestamp)))) +
   geom_point() + geom_line() + 
@@ -17,6 +27,7 @@ treadmill_summary_day %>%
 
 treadmill_fitday_records %>% 
   mutate(Date = as.Date(timestamp)) %>% 
+  filter(Date < "2022-08-16") %>% 
   group_by(Date) %>% 
   mutate(Time = as.numeric(timestamp - min(timestamp, na.rm = TRUE))) %>% 
   ggplot(aes(x = Time, y = heart_rate, color = factor(Date))) +
