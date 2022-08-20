@@ -9,7 +9,7 @@ treadmill_session <- read_rds("data/treadmill_session.rds") %>% distinct()
 
 # Data from: https://connect.garmin.com/modern/
 # Read fit files: remotes::install_github("grimbough/FITfileR")
-treadmill_summary_day_new <- read_csv("data/activity_9437257463.csv", 
+treadmill_summary_day_new <- read_csv("data/activity_9440413512.csv", 
                  col_types = cols(Laps = col_character(), 
                                   Time = col_character(), `Cumulative Time` = col_character(), 
                                   `Avg Pace` = col_character(), `Total Ascent` = col_skip(), 
@@ -24,7 +24,7 @@ treadmill_summary_day_new <- read_csv("data/activity_9437257463.csv",
 
 
 
-treadmill_fitday <- readFitFile(fileName = "data/9437257463_ACTIVITY.fit")
+treadmill_fitday <- readFitFile(fileName = "data/9440413512_ACTIVITY.fit")
 
 
 treadmill_fitday_records_new <- records(treadmill_fitday) %>% 
