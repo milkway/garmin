@@ -44,7 +44,7 @@ treadmill_summary_day %>%
   select(-`Avg GAP`, - timestamp) %>% 
   filter(Laps != 'Summary') %>%
   kable( caption = 'Resumo dos dados por volta (1km)') %>% 
-  row_spec(0, bold = TRUE, color = "white", background = "#D7261E")%>%
+  row_spec(0, bold = TRUE, color = "white", background = "#159957") %>%
   scroll_box(height = "500px") %>% 
   kable_styling(font_size = 10) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
@@ -57,7 +57,7 @@ treadmill_summary_day %>%
 treadmill_fitday_records %>% 
   #head() %>% 
   kable(caption = 'Dados completos') %>% 
-  row_spec(0, bold = TRUE, color = "white", background = "#D7261E") %>%
+  row_spec(0, bold = TRUE, color = "white", background = "#159957") %>%
   scroll_box(height = "500px") %>%
   kable_styling(font_size = 10) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
