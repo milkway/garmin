@@ -176,10 +176,8 @@ treadmill_session %>%
   geom_point(aes(x = Date, y = total_training_effect)) +
   geom_line(aes(x = Date, y = total_training_effect))
 ```
-```
 
 ## Total Calories
-
 
 ```{r}
 treadmill_session %>% 
