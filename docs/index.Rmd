@@ -35,6 +35,7 @@ suppressPackageStartupMessages(library(FITfileR))
 ```{r}
 treadmill_summary_day <- read_rds("../data/treadmill_summary_day.rds")
 treadmill_fitday_records <- read_rds("../data/treadmill_fitday_records.rds")
+treadmill_session <- read_rds("../data/treadmill_session.rds")
 ```
 
 ```{r daysummary}
@@ -163,4 +164,30 @@ treadmill_fitday_records %>%
   geom_smooth(method = 'loess', formula = 'y ~ x', span = .25, se = FALSE) +
   theme_bw() + labs(y = 'Heart Rate', color = 'Date')
 ```
+
+
+
+## Training Effect
+
+```{r}
+treadmill_session %>% 
+  mutate(Date = as.Date(timestamp)) %>% 
+  ggplot() +
+  geom_point(aes(x = Date, y = total_training_effect)) +
+  geom_line(aes(x = Date, y = total_training_effect))
+```
+```
+
+## Total Calories
+
+
+```{r}
+treadmill_session %>% 
+  mutate(Date = as.Date(timestamp)) %>% 
+  ggplot() +
+  geom_point(aes(x = Date, y = total_calories)) +
+  geom_line(aes(x = Date, y = total_calories))
+  
+```
+
 
