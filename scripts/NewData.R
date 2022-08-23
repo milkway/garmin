@@ -9,7 +9,7 @@ treadmill_session <- read_rds("data/treadmill_session.rds") %>% distinct()
 
 # Data from: https://connect.garmin.com/modern/
 # Read fit files: remotes::install_github("grimbough/FITfileR")
-treadmill_summary_day_new <- read_csv("data/activity_9456390227.csv",
+treadmill_summary_day_new <- read_csv("data/activity_9424554063.csv",
                  col_types = cols(Laps = col_character(), 
                                   Time = col_character(), `Cumulative Time` = col_character(), 
                                   `Avg Pace` = col_character(), `Total Ascent` = col_skip(), 
@@ -24,7 +24,7 @@ treadmill_summary_day_new <- read_csv("data/activity_9456390227.csv",
 
 
 
-treadmill_fitday <- readFitFile(fileName = "data/9456390227_ACTIVITY.fit")
+treadmill_fitday <- readFitFile(fileName = "data/9463667497_ACTIVITY.fit")
 
 
 treadmill_fitday_records_new <- records(treadmill_fitday) %>% 
@@ -48,18 +48,18 @@ write_rds(treadmill_fitday, file = paste0("data/treadmill_fitday", str_remove_al
 rm(list = grep("_new", ls(), value = TRUE))
 
 
-ColAttr <- function(x, attrC, ifIsNull) {
-  # Returns column attribute named in attrC, if present, else isNullC.
-  atr <- attr(x, attrC, exact = TRUE)
-  atr <- if (is.null(atr)) {ifIsNull} else {atr}
-  atr
-}
+# ColAttr <- function(x, attrC, ifIsNull) {
+#   # Returns column attribute named in attrC, if present, else isNullC.
+#   atr <- attr(x, attrC, exact = TRUE)
+#   atr <- if (is.null(atr)) {ifIsNull} else {atr}
+#   atr
+# }
 
 
-tibble_units <- treadmill_session_new %>% 
-  map(.f =  ColAttr, attrC="units", ifIsNull = "") %>% 
-  as_tibble() %>% 
-    pivot_longer(cols = everything(), names_to = "uariable", values_to = "unit")
+# tibble_units <- treadmill_session_new %>% 
+#   map(.f =  ColAttr, attrC="units", ifIsNull = "") %>% 
+#   as_tibble() %>% 
+#     pivot_longer(cols = everything(), names_to = "uariable", values_to = "unit")
 
 #write_rds(tibble_units, file = "data/tibble_units.rds")
 

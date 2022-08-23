@@ -107,7 +107,7 @@ Repedido 3 vezes.
 ```{r}
 treadmill_summary_day %>% 
   filter(Laps != 'Summary') %>% 
-  filter(as.Date(timestamp) > "2022-08-15") %>% 
+  filter(as.Date(timestamp) > "2022-08-15", as.Date(timestamp) < "2022-08-23") %>% 
   mutate(Laps = as.integer(Laps)) %>% 
   ggplot(aes(x = Laps, y = `Avg HR`, color = factor(as.Date(timestamp)))) +
   geom_point() + geom_line() + 
@@ -120,7 +120,42 @@ treadmill_summary_day %>%
 ```{r}
 treadmill_fitday_records %>% 
   mutate(Date = as.Date(timestamp)) %>% 
-  filter(Date >= "2022-08-16") %>% 
+  filter(Date >= "2022-08-16",  as.Date(timestamp) < "2022-08-23") %>% 
+  group_by(Date) %>% 
+  mutate(Time = as.numeric(timestamp - min(timestamp, na.rm = TRUE))) %>% 
+  ggplot(aes(x = Time, y = heart_rate, color = factor(Date))) +
+  geom_point(alpha = .25) + 
+  geom_smooth(method = 'loess', formula = 'y ~ x', span = .25, se = FALSE) +
+  theme_bw() + labs(y = 'Heart Rate', color = 'Date')
+```
+
+
+### Terceiro Exercício
+
+1. 5 min a 5 km/h
+2. 5 min a 6 km/h
+3. 5 min a 7 km/h
+
+Repedido 4 vezes. Finalizar com 5 min a 5 km/h.
+
+
+```{r}
+treadmill_summary_day %>% 
+  filter(Laps != 'Summary') %>% 
+  filter(as.Date(timestamp) > "2022-08-22", as.Date(timestamp) < "2022-08-28") %>% 
+  mutate(Laps = as.integer(Laps)) %>% 
+  ggplot(aes(x = Laps, y = `Avg HR`, color = factor(as.Date(timestamp)))) +
+  geom_point() + geom_line() + 
+  labs(color = 'Date') +
+  theme_bw()
+```
+
+
+
+```{r}
+treadmill_fitday_records %>% 
+  mutate(Date = as.Date(timestamp)) %>% 
+  filter(Date >= "2022-08-23",  as.Date(timestamp) < "2022-08-28") %>% 
   group_by(Date) %>% 
   mutate(Time = as.numeric(timestamp - min(timestamp, na.rm = TRUE))) %>% 
   ggplot(aes(x = Time, y = heart_rate, color = factor(Date))) +
