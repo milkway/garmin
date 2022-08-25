@@ -164,7 +164,7 @@ treadmill_session %>%
   geom_line() +
   geom_text(
     aes(
-      x = xmin,
+      x = xmax,
       y = Lim_Inf,
       label = Label,
       #colour =  Color, 
@@ -173,10 +173,10 @@ treadmill_session %>%
     colour =  "black", 
     fontface = "bold",
     vjust = 0,
-    hjust = 0,
+    hjust = 1,
     size = 3,
     nudge_y = .025,
-    nudge_x = .1,
+    nudge_x = -.05,
     alpha = .9,
     data = reference_table, 
     inherit.aes = FALSE) +
@@ -198,4 +198,61 @@ treadmill_session %>%
   #scale_fill_manual(values = reference_table$Color, )
 
 
+info_session <- treadmill_fitday_records %>% 
+  select(timestamp, heart_rate) %>%
+  mutate(Date = as.Date(timestamp)) %>%  
+  group_by(Date) %>% 
+  mutate(#Duration = timestamp - lag(timestamp, order_by = timestamp),
+          Duration = lead(timestamp, order_by = timestamp) - timestamp,
+         `Zone 5` = if_else(heart_rate > 160, Duration, 0), 
+         `Zone 4` = if_else(heart_rate <= 160 & heart_rate >= 143, Duration, 0), 
+         `Zone 3` = if_else(heart_rate <= 142 & heart_rate >= 125, Duration, 0),
+         `Zone 2` = if_else(heart_rate <= 124 & heart_rate >= 107, Duration, 0),
+         `Zone 1` = if_else(heart_rate <= 106 & heart_rate >= 90, Duration, 0),
+         `Zone 0` = if_else(heart_rate < 90, Duration, 0)) %>% 
+  pivot_longer(-timestamp:-Duration, names_to = "Zone", values_to = "Detect") %>% 
+  group_by(Date, Zone) %>% 
+  summarise(Total = sum(Detect, na.rm = TRUE), 
+            N = n(),
+            min_time = min(timestamp, na.rm = TRUE), 
+            max_time = max(timestamp, na.rm = TRUE),
+            Duration = max_time - min_time, .groups = 'drop') %>% 
+  mutate(Fraction = as.numeric(Total, units = "mins")/as.numeric(Duration, units = "mins"),
+         Percent = num(Fraction*100,  label = "%")) %>% 
+  select(Date, Zone, Total, Percent)
 
+
+info_session %>% 
+  mutate(
+    Days = as.numeric(Date - min(Date, na.rm = TRUE)),
+    Fade = Days/max(Days, na.rm = TRUE)) %>% 
+  ggplot() +
+  geom_point(aes(x = Zone, y = Percent, color = Fade), size = 3) +
+  #scale_color_gradient(high = "#004529", low = "#ffffe5") +
+  scale_color_gradient(low = "yellow", high = "red", na.value = NA) +
+  theme_bw()
+    
+
+info_session  %>% 
+  ggplot(aes(x = Date, y = Percent, color = Zone, Fill = Zone)) +
+  geom_line() +
+  geom_point()
+
+
+
+info_session  %>% 
+  ggplot(aes(x = Date, y = Total, color = Zone, Fill = Zone)) +
+  geom_line() +
+  geom_point() + 
+  theme_bw()
+
+
+info_session  %>% 
+  ggplot(aes(x = Date, y = Percent)) +
+  geom_bar(stat = 'identity', position = 'dodge', fill="forest green")  +
+  facet_wrap(. ~ Zone) +
+  theme_bw() + 
+  theme(legend.position = "none",
+        strip.text = element_text(face = "bold"),
+        strip.background = element_rect(colour="black",
+                                        fill="white"))
