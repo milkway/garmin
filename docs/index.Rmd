@@ -169,12 +169,92 @@ treadmill_fitday_records %>%
 
 ## Training Effect
 
+Training Effect measures the impact of an activity on your aerobic and anaerobic fitness and accumulates during the activity. As the activity progresses, the Training Effect value increases. Training Effect is determined by your user profile information and training history, heart rate, duration, and intensity of your activity.
+
+### Aerobic Training Effect
+
+Aerobic training effect measures the aerobic benefit of exercise, which should correlate with the fitness improvement you expect to get from it. Technically speaking, aerobic training effect is the excess post-exercise oxygen consumption (EPOC) accumulated during exercise, mapped onto a 0-to-5 scale that accounts for your fitness level and training habits. Typically, as you get fitter, you need larger “doses” of exercise to continue seeing improvement. While an exercise session generating an EPOC of 60 ml-O2/kg might have given you a great training benefit when you were out of shape, it might not do very much for you once you are in really good shape. Training Effect reflects this reality by giving a higher number in the first case than in the second case.
+
+
+### Anaerobic Training Effect
+
+While there is not a specific metric tied to it, the aspect of performance most easily associated with anaerobic training effect is your ability to perform short bursts of sustained high-intensity activity. Your body’s most efficient method of transforming fuel into energy requires oxygen, but sometimes your demand for energy exceeds the rate at which enough oxygen is immediately available. Anaerobic energy can jump into action in these scenarios, but it becomes depleted quickly.
+
+![Garmin Training Effect](https://atlaske-content.garmin.com//asset/images/gr-oxygen-deficit_Time1524754984893.jpg)
+
+By analyzing both heart rate and speed (or power, in the case of cycling) the anaerobic training effect feature quantifies the anaerobic contribution to EPOC made during these periods of exertion. The higher the anaerobic training effect, the greater expected benefit to your anaerobic athletic capability. High-intensity intervals, for example, have been shown to improve several components related to your ability to perform, and anaerobic training effect quantifies this for you. However, the feature goes one step further. By analyzing the type of workout you did, it can tell you more specifically how the workout helped you. For example, if it were detected that you completed several high-speed repeats, you might get an anaerobic training effect of 3.5 saying, “This activity improved your anaerobic capacity and speed due to several high-speed/power repeats.”
+
+![Reference Table](https://atlaske-content.garmin.com//asset/images/Training_Effect_Samples_Time1524757114375.PNG)
+
+
+The above Training Effect values and phrases are illustrative examples. Your experience may differ depending on your personal training habits. It may take several training sessions for the device to learn your fitness parameters and produce the most accurate results. While the device is still learning about you, you may see uncharacteristic Training Effect values.
+
 ```{r}
+range_date <- treadmill_session %>% 
+  mutate(Date = as.Date(timestamp)) %>% 
+  summarise(Min = min(Date), Max = max(Date))
+
+
+reference_table <- tibble(
+  Label = c("Overreaching", "Highly Impacting", "Impacting", "Maintaining", "Some Benefit", "No Benefit"),
+  Lim_Inf = c(5, 4, 3, 2, 1, 0),
+  Lim_Sup = c(5.2, 5, 4, 3, 2, 1),
+  xmin = range_date$Min,
+  xmax = range_date$Max,
+  Color =  c(rgb(255/255, 0, 53/255), 
+             rgb(255/255, 158/255, 13/255), 
+             rgb(114/255, 234/255, 36/255), 
+             rgb(17/255, 169/255, 237/255),
+             rgb(100/255, 100/255, 100/255),
+             rgb(136/255, 136/255, 136/255))
+)
+
 treadmill_session %>% 
   mutate(Date = as.Date(timestamp)) %>% 
-  ggplot() +
-  geom_point(aes(x = Date, y = total_training_effect)) +
-  geom_line(aes(x = Date, y = total_training_effect))
+  ggplot(aes(x = Date, y = total_training_effect)) +
+  geom_rect(
+    aes(xmin = xmin, 
+        xmax = xmax, 
+        fill = Color,
+        ymin = Lim_Inf, 
+        ymax = Lim_Sup),
+    alpha = 0.5, 
+    data = reference_table, inherit.aes = FALSE
+  ) + 
+  theme_bw() + 
+  #theme(legend.position = 'bottom') +
+  scale_fill_identity() +
+  scale_color_identity() +
+  geom_point() +
+  geom_line() +
+  geom_text(
+    aes(
+      x = xmin,
+      y = Lim_Inf,
+      label = Label,
+      #colour =  Color, 
+      ),
+    #fill = 'white',
+    colour =  "black", 
+    fontface = "bold",
+    vjust = 0,
+    hjust = 0,
+    size = 3,
+    nudge_y = .025,
+    nudge_x = .1,
+    alpha = .9,
+    data = reference_table, 
+    inherit.aes = FALSE) +
+  labs(x = "Date", y = "Training Effect") + 
+  scale_x_date(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(
+    panel.border = element_blank() 
+    #panel.grid.major = element_blank(), 
+    #panel.grid.minor = element_blank(),
+    #axis.line = element_blank() 
+    #axis.line = element_line(arrow = arrow())
+    )
 ```
 
 ## Total Calories
@@ -184,7 +264,8 @@ treadmill_session %>%
   mutate(Date = as.Date(timestamp)) %>% 
   ggplot() +
   geom_point(aes(x = Date, y = total_calories)) +
-  geom_line(aes(x = Date, y = total_calories))
+  geom_line(aes(x = Date, y = total_calories)) +
+  theme_bw()
   
 ```
 

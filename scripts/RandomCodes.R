@@ -99,3 +99,103 @@ treadmill_fitday_records %>%
 #                                      phase = if_else(time < 5*60, 'Phase 1', 
 #                                                      if_else(time > max(time) - 5*60, 'Phase 3', 'Phase 2'))) %>% 
 #   ggplot() + geom_point(aes(x = as.numeric(time), y = heart_rate, color = phase), na.rm = TRUE) 
+
+library(tidyverse)
+
+treadmill_session <- read_rds("data/treadmill_session.rds")
+
+str(treadmill_session)
+
+
+
+
+treadmill_session %>% 
+  mutate(Date = as.Date(timestamp)) %>% 
+  ggplot(aes(x = Date, y = total_calories)) +
+  geom_point() +
+  geom_line() + 
+  geom_ribbon(aes(ymin = Lim_Inf, 
+                  ymax = Lim_Sup, 
+                  fill = Label,
+                  x = seq(as.Date("2022-08-08"), as.Date("2022-08-24"), "days")), 
+              data = reference_table,
+              inherit.aes = FALSE) +
+  theme_bw()
+
+
+
+range_date <- treadmill_session %>% 
+  mutate(Date = as.Date(timestamp)) %>% 
+  summarise(Min = min(Date), Max = max(Date))
+
+
+reference_table <- tibble(
+  Label = c("Overreaching", "Highly Impacting", "Impacting", "Maintaining", "Some Benefit", "No Benefit"),
+  Lim_Inf = c(5, 4, 3, 2, 1, 0),
+  Lim_Sup = c(5.2, 5, 4, 3, 2, 1),
+  xmin = range_date$Min,
+  xmax = range_date$Max,
+  Color =  c(rgb(255/255, 0, 53/255), 
+             rgb(255/255, 158/255, 13/255), 
+             rgb(114/255, 234/255, 36/255), 
+             rgb(17/255, 169/255, 237/255),
+             rgb(100/255, 100/255, 100/255),
+             rgb(136/255, 136/255, 136/255))
+)
+
+treadmill_session %>% 
+  mutate(Date = as.Date(timestamp)) %>% 
+  ggplot(aes(x = Date, y = total_training_effect)) +
+  geom_rect(
+    aes(xmin = xmin, 
+        xmax = xmax, 
+        fill = Color,
+        ymin = Lim_Inf, 
+        ymax = Lim_Sup),
+    alpha = 0.5, 
+    color = 'white',
+    data = reference_table, inherit.aes = FALSE
+  ) + 
+  theme_bw() + 
+  #theme(legend.position = 'bottom') +
+  scale_fill_identity() +
+  scale_color_identity() +
+  geom_point() +
+  geom_line() +
+  geom_text(
+    aes(
+      x = xmin,
+      y = Lim_Inf,
+      label = Label,
+      #colour =  Color, 
+      ),
+    #fill = 'white',
+    colour =  "black", 
+    fontface = "bold",
+    vjust = 0,
+    hjust = 0,
+    size = 3,
+    nudge_y = .025,
+    nudge_x = .1,
+    alpha = .9,
+    data = reference_table, 
+    inherit.aes = FALSE) +
+  labs(x = "Date", y = "Training Effect") + 
+  scale_x_date(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme(
+    panel.border = element_blank() 
+    #panel.grid.major = element_blank(), 
+    #panel.grid.minor = element_blank(),
+    #axis.line = element_blank() 
+    #axis.line = element_line(arrow = arrow())
+    )
+  #theme(plot.margin = margin(0,0,0,0))
+  #geom_point(aes(x = Date, y = total_anaerobic_training_effect)) +
+  #geom_line(aes(x = Date, y = total_anaerobic_training_effect))
+
+  
+  #scale_fill_manual(values = reference_table$Color, )
+
+
+
