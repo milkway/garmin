@@ -189,7 +189,8 @@ treadmill_session %>%
     #panel.grid.minor = element_blank(),
     #axis.line = element_blank() 
     #axis.line = element_line(arrow = arrow())
-    )
+    ) +
+  geom_vline(aes(xintercept = Date), color = 'red', size = 1, data = change_exercises_dates, alpha = .5)
   #theme(plot.margin = margin(0,0,0,0))
   #geom_point(aes(x = Date, y = total_anaerobic_training_effect)) +
   #geom_line(aes(x = Date, y = total_anaerobic_training_effect))

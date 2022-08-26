@@ -36,6 +36,7 @@ suppressPackageStartupMessages(library(FITfileR))
 treadmill_summary_day <- read_rds("../data/treadmill_summary_day.rds")
 treadmill_fitday_records <- read_rds("../data/treadmill_fitday_records.rds")
 treadmill_session <- read_rds("../data/treadmill_session.rds")
+change_exercises_dates <- read_rds("../data/change_exercises_dates.rds")
 ```
 
 ```{r daysummary}
@@ -255,7 +256,8 @@ treadmill_session %>%
     #panel.grid.minor = element_blank(),
     #axis.line = element_blank() 
     #axis.line = element_line(arrow = arrow())
-    )
+    ) +
+  geom_vline(aes(xintercept = Date), color = 'red', size = 1, data = change_exercises_dates, alpha = .5)
   #theme(plot.margin = margin(0,0,0,0))
   #geom_point(aes(x = Date, y = total_anaerobic_training_effect)) +
   #geom_line(aes(x = Date, y = total_anaerobic_training_effect))
@@ -269,7 +271,8 @@ treadmill_session %>%
   ggplot() +
   geom_point(aes(x = Date, y = total_calories)) +
   geom_line(aes(x = Date, y = total_calories)) +
-  theme_bw()
+  theme_bw() +
+  geom_vline(aes(xintercept = Date), color = 'red', size = 1, data = change_exercises_dates, alpha = .5)
   
 ```
 
@@ -310,7 +313,8 @@ info_session %>%
   geom_point(aes(x = Zone, y = Percent, color = Fade), size = 3) +
   #scale_color_gradient(high = "#004529", low = "#ffffe5") +
   scale_color_gradient(low = "yellow", high = "red", na.value = NA) +
-  theme_bw()
+  theme_bw() 
+  #geom_vline(aes(xintercept = Date), color = 'red', size = 1, data = change_exercises_dates, alpha = .5)
 ```
 
 
@@ -324,6 +328,7 @@ info_session  %>%
   theme(legend.position = "none",
         strip.text = element_text(face = "bold"),
         strip.background = element_rect(colour="black",
-                                        fill="white"))
+                                        fill="white"))+
+  geom_vline(aes(xintercept = Date), color = 'red', size = 1, data = change_exercises_dates, alpha = .5)
 ```
 
