@@ -257,3 +257,18 @@ info_session  %>%
         strip.text = element_text(face = "bold"),
         strip.background = element_rect(colour="black",
                                         fill="white"))
+
+library(readr)
+Weight <- read_csv("data/Weight.csv", col_types = cols(`Body Fat` = col_skip(), 
+                                                       `Skeletal Muscle Mass` = col_skip(), 
+                                                       `Bone Mass` = col_skip(), `Body Water` = col_skip(), 
+                                                       ...9 = col_skip()))
+bind_cols(
+  Weight %>% filter(is.na(BMI)) %>% select(Time),
+  Weight %>% filter(!is.na(BMI)) %>% select(-Time)
+) %>%
+  mutate(Date = as.Date(Time, format = "%b %d, %Y"),
+         Weight_num = as.numeric(str_remove(Weight, '\\skg')),
+         Change_num = as.numeric(str_remove(Change, '\\skg|--'))
+         ) %>% View
+  
