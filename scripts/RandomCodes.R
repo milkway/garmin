@@ -263,12 +263,54 @@ Weight <- read_csv("data/Weight.csv", col_types = cols(`Body Fat` = col_skip(),
                                                        `Skeletal Muscle Mass` = col_skip(), 
                                                        `Bone Mass` = col_skip(), `Body Water` = col_skip(), 
                                                        ...9 = col_skip()))
-bind_cols(
+Weight_Base <- bind_cols(
   Weight %>% filter(is.na(BMI)) %>% select(Time),
   Weight %>% filter(!is.na(BMI)) %>% select(-Time)
 ) %>%
   mutate(Date = as.Date(Time, format = "%b %d, %Y"),
          Weight_num = as.numeric(str_remove(Weight, '\\skg')),
          Change_num = as.numeric(str_remove(Change, '\\skg|--'))
-         ) %>% View
+         )
+write_rds(Weight_Base, "data/Weight.rds")
+library(tidyverse)
+
+Weight_Base
+
+library(forecast)
+library(tsibble)
+library(timetk)
+?auto.arima
+
+Weight_Base %>%
+  filter(Date >= "2022-08-22") %>%
+  select(Date, Weight_num) %>%
+  as_tsibble(index = Date) %>%
+  fill_gaps() %>%
+  ggplot() +
+  geom_line(aes(x = Date, y = Weight_num)) +
+  geom_point(aes(x = Date, y = Weight_num))
   
+
+
+Weight_Base %>%
+  filter(Date >= "2022-08-22") %>%
+  select(Date, Weight_num) %>%
+  plot_time_series(Date, Weight_num, 
+                   .interactive = FALSE,
+                   .plotly_slider = TRUE)
+  
+  as_tsibble(index = Date) %>%
+  auto.arima() %>%
+  forecast(h=20) %>%
+  autoplot()
+
+fcst <- Weight_Base %>%
+  filter(Date >= "2022-08-22") %>%
+  select(Date, Weight_num) %>%
+  as_tsibble(index = Date) %>%
+  fill_gaps() %>%
+  auto.arima() 
+
+fcst %>%
+  forecast() %>%
+  summary()
