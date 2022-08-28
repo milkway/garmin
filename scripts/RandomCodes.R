@@ -257,7 +257,7 @@ info_session  %>%
         strip.text = element_text(face = "bold"),
         strip.background = element_rect(colour="black",
                                         fill="white"))
-
+#|\
 library(readr)
 Weight <- read_csv("data/Weight.csv", col_types = cols(`Body Fat` = col_skip(), 
                                                        `Skeletal Muscle Mass` = col_skip(), 
