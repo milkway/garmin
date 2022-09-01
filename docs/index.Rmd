@@ -168,8 +168,6 @@ treadmill_fitday_records %>%
 
 
 
-
-
 ### Quarto Exercício
 
 1. 5 min a 5 km/h
@@ -203,7 +201,42 @@ treadmill_fitday_records %>%
   theme_bw() + labs(y = 'Heart Rate', color = 'Date')
 ```
 
+### Quinto Exercício
 
+1. 5 min a 5 km/h
+2. 5 min a 7 km/h
+3. 2 min a 5 km/h
+4. 1 min a 8 km/h
+5. 2 min a 5 km/h
+6. 5 min a 7 km/h
+
+Passos 3-6 Repedido  5 vezes. Finalizar com 5 min a 5 km/h.
+
+
+```{r}
+treadmill_summary_day %>% 
+  filter(Laps != 'Summary') %>% 
+  filter(as.Date(timestamp) > "2022-08-31", as.Date(timestamp) <= "2022-09-02") %>% 
+  mutate(Laps = as.integer(Laps)) %>% 
+  ggplot(aes(x = Laps, y = `Avg HR`, color = factor(as.Date(timestamp)))) +
+  geom_point() + geom_line() + 
+  labs(color = 'Date') +
+  theme_bw()
+```
+
+
+
+```{r}
+treadmill_fitday_records %>% 
+  mutate(Date = as.Date(timestamp)) %>% 
+  filter(Date > "2022-08-31",  as.Date(timestamp) <= "2022-09-02") %>% 
+  group_by(Date) %>% 
+  mutate(Time = as.numeric(timestamp - min(timestamp, na.rm = TRUE))) %>% 
+  ggplot(aes(x = Time, y = heart_rate, color = factor(Date))) +
+  geom_point(alpha = .25) + 
+  geom_smooth(method = 'loess', formula = 'y ~ x', span = .25, se = FALSE) +
+  theme_bw() + labs(y = 'Heart Rate', color = 'Date')
+```
 
 
 ## Training Effect

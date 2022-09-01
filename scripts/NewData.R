@@ -9,7 +9,7 @@ treadmill_session <- read_rds("data/treadmill_session.rds") %>% distinct()
 
 # Data from: https://connect.garmin.com/modern/
 # Read fit files: remotes::install_github("grimbough/FITfileR")
-treadmill_summary_day_new <- read_csv("data/activity_9516903003.csv",
+treadmill_summary_day_new <- read_csv("data/activity_9523461533.csv",
                  col_types = cols(Laps = col_character(), 
                                   Time = col_character(), `Cumulative Time` = col_character(), 
                                   `Avg Pace` = col_character(), `Total Ascent` = col_skip(), 
@@ -24,7 +24,7 @@ treadmill_summary_day_new <- read_csv("data/activity_9516903003.csv",
 
 
 
-treadmill_fitday <- readFitFile(fileName = "data/9516903003_ACTIVITY.fit")
+treadmill_fitday <- readFitFile(fileName = "data/9523461533_ACTIVITY.fit")
 
 
 treadmill_fitday_records_new <- records(treadmill_fitday) %>% 
@@ -48,7 +48,7 @@ write_rds(treadmill_fitday, file = paste0("data/treadmill_fitday", str_remove_al
 rm(list = grep("_new", ls(), value = TRUE))
 
 
-#change_exercises_dates <- tibble(Date = as.Date(c("2022-08-16", "2022-08-23", "2022-08-26"))) %>% mutate(Order = row_number())
+#change_exercises_dates <- tibble(Date = as.Date(c("2022-08-16", "2022-08-23", "2022-08-26", "2022-09-01"))) %>% mutate(Order = row_number())
 #write_rds(change_exercises_dates, "data/change_exercises_dates.rds")
 
 # ColAttr <- function(x, attrC, ifIsNull) {
