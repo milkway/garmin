@@ -45,7 +45,12 @@ treadmill_session <- read_rds("../data/treadmill_session.rds")
 change_exercises_dates <- read_rds("../data/change_exercises_dates.rds")
 
 
-raw <- read_csv("../data/Weight.csv")
+suppressWarnings({
+  suppressMessages({
+  raw <- read_csv("../data/Weight.csv", show_col_types = FALSE)
+  })
+})
+
 
 datas <- raw %>% filter(is.na(Weight)) %>% select(Date = Time)
 
