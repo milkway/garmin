@@ -9,6 +9,7 @@ treadmill_session <- read_rds("data/treadmill_session.rds") %>% distinct()
 
 # Data from: https://connect.garmin.com/modern/
 # Read fit files: remotes::install_github("grimbough/FITfileR")
+# 9773017029
 treadmill_summary_day_new <- read_csv("data/activity_9662876310.csv",
                  col_types = cols(Laps = col_character(), 
                                   Time = col_character(), `Cumulative Time` = col_character(), 
@@ -30,11 +31,11 @@ treadmill_fitday <- readFitFile(fileName = "data/9662876310_ACTIVITY.fit")
 treadmill_fitday_records_new <- records(treadmill_fitday) %>% 
   bind_rows() %>% 
   arrange(timestamp)
-treadmill_fitday_records <- bind_rows(treadmill_fitday_records, treadmill_fitday_records_new)
+treadmill_fitday_records <- bind_rows(treadmill_fitday_records, treadmill_fitday_records_new) %>% distinct()
 write_rds(treadmill_fitday_records, file = "data/treadmill_fitday_records.rds")
 
 treadmill_session_new <- getMessagesByType(treadmill_fitday, "session")
-treadmill_session <- bind_rows(treadmill_session, treadmill_session_new)
+treadmill_session <- bind_rows(treadmill_session, treadmill_session_new) %>% distinct()
 write_rds(treadmill_session, file = "data/treadmill_session.rds")
 
 
@@ -48,8 +49,11 @@ write_rds(treadmill_fitday, file = paste0("data/treadmill_fitday", str_remove_al
 rm(list = grep("_new", ls(), value = TRUE))
 
 
-change_exercises_dates <- tibble(Date = as.Date(c("2022-08-16", "2022-08-23", "2022-08-26", "2022-09-01", "2022-09-20"))) %>% mutate(Order = row_number())
+change_exercises_dates <- tibble(Date = as.Date(c("2022-08-16", "2022-08-23", "2022-08-26", "2022-09-01", "2022-09-20", "2022-10-03"))) %>% 
+  mutate(Order = row_number())
+labels_exercises <- tibble(label = c("Exercício 1", "Exercício 2", "", "Exercício 3", "Exercício 4", "Exercício 5", "Livre", "Trek"))
 write_rds(change_exercises_dates, "data/change_exercises_dates.rds")
+write_rds(labels_exercises, "labels_exercises.rds")
 
 # ColAttr <- function(x, attrC, ifIsNull) {
 #   # Returns column attribute named in attrC, if present, else isNullC.
