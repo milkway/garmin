@@ -22,12 +22,18 @@ pre, pre:not([class]) { background-color: white; }
 ### Packages used
 
 ```{r packages}
-suppressPackageStartupMessages(library(tidyverse))
-suppressPackageStartupMessages(library(knitr))
-suppressPackageStartupMessages(library(kableExtra))
-suppressPackageStartupMessages(library(lubridate))
-suppressPackageStartupMessages(library(furrr))
-suppressPackageStartupMessages(library(FITfileR))
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(knitr)
+  library(kableExtra)
+  library(lubridate)
+  library(furrr)
+  library(FITfileR)
+  library(fable)
+  library(tsibble)
+  library(tsibbledata)
+  })
+
 ```
 
 ### Data
@@ -37,6 +43,18 @@ treadmill_summary_day <- read_rds("../data/treadmill_summary_day.rds")
 treadmill_fitday_records <- read_rds("../data/treadmill_fitday_records.rds")
 treadmill_session <- read_rds("../data/treadmill_session.rds")
 change_exercises_dates <- read_rds("../data/change_exercises_dates.rds")
+
+
+raw <- read_csv("../data/Weight.csv")
+
+datas <- raw %>% filter(is.na(Weight)) %>% select(Date = Time)
+
+
+pesos <- datas %>% bind_cols(raw %>% 
+                      filter(!is.na(Weight)) %>% 
+                      select(Time:BMI)) %>% 
+  mutate(Date = mdy(Date)) %>% 
+  mutate(Weight_num = as.numeric(str_remove(Weight, ' kg')))
 ```
 
 ```{r daysummary}
@@ -65,6 +83,143 @@ treadmill_fitday_records %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
   kable_styling(fixed_thead = TRUE) 
 ```
+
+## Previsões
+
+```{r}
+
+model_1 <- lm(Weight_num ~ Date, data = pesos)
+model_2 <- lm(BMI ~ Date, data = pesos)
+
+arima <- pesos %>% 
+  select(Date, Weight = Weight_num, BMI) %>% 
+  as_tsibble(index = "Date") %>% 
+  fill_gaps() %>% 
+  model(
+    #ets = ETS(box_cox(Weight, 0.3)),
+    arima = ARIMA(Weight)
+    #snaive = SNAIVE(Weight)
+  )
+
+arima_bmi <- pesos %>% 
+  select(Date, BMI) %>% 
+  as_tsibble(index = "Date") %>% 
+  fill_gaps() %>% 
+  model(
+    #ets = ETS(box_cox(Weight, 0.3)),
+    arima = ARIMA(BMI)
+    #snaive = SNAIVE(Weight)
+  )
+
+previsão <- tibble(
+  Date = seq(ymd("2022-10-25"), ymd("2023-05-28"), by = '1 day')
+) %>% 
+  mutate(Predict = predict(model_1, newdata = .),
+         Model = 'Linear Regression') %>% 
+   bind_rows(arima %>% 
+              forecast(h = "256 days") %>%
+              as_tibble() %>% 
+              select(Date, Predict = .mean) %>% 
+              mutate(Model = 'ARIMA') %>% 
+              filter(Predict >= 100))
+
+previsão_bmi <- tibble(
+  Date = seq(ymd("2022-10-25"), ymd("2024-04-12"), by = '1 day')
+) %>% 
+  mutate(Predict = predict(model_2, newdata = .),
+         Model = 'Linear Regression') %>% 
+  bind_rows(arima_bmi %>% 
+              forecast(h = "351 days") %>%
+              as_tibble() %>% 
+              select(Date, Predict = .mean) %>% 
+              mutate(Model = 'ARIMA'))
+
+```
+
+
+### Peso
+
+```{r}
+pesos %>% 
+  ggplot() +
+  geom_point(aes(x = Date, y = Weight_num, color = 'Actual'), alpha = .75) +
+  #geom_line(aes(x = Date, y = Predict, color = 'Ajuste'), size = 1) +
+  geom_line(aes(x = Date, y = Predict, color = Model), size = 1, 
+            data = previsão) + 
+  # geom_line(aes(x = Date, y = ARIMA, color = 'SARIMA'), size = 1, 
+  #           data = previsão2) + 
+  geom_hline(size = 1, aes(yintercept = 100, color = 'Target')) +
+  annotate("text", 
+           x = ymd("2022-8-20"), 
+           y = 100,  
+           label = "Target", 
+           fontface = 'bold',
+           vjust = -.5) +
+  labs(color = 'Legend', y = 'Weight (Kg)') +
+  theme_light() + 
+  theme(
+    legend.background = element_blank(),
+    legend.direction = 'horizontal',
+    legend.position = 'top',
+    legend.text.align = 0,
+    legend.title.align = 1,
+    #plot.caption= element_text(size=9, 
+    #                           color=gray(.25),
+    #                           face="italic"),
+    #legend.position = 'top', 
+    aspect.ratio =  2/(1+sqrt(5))
+  )  +
+  scale_color_brewer(palette = 'Set1') +
+  scale_x_date(#limits = ymd(c("2020-03-25", "2021-01-05")),
+    expand = c(.01,0,0,0),
+    date_breaks = "1 month",
+    minor_breaks = NULL,
+    date_labels = "%b")
+```
+
+
+### Índice de Massa Corporal (IMC)
+
+```{r}
+pesos %>% 
+  ggplot() +
+  geom_point(aes(x = Date, y = BMI, color = 'Actual'), alpha = .75) +
+  #geom_line(aes(x = Date, y = Predict, color = 'Ajuste'), size = 1) +
+  geom_line(aes(x = Date, y = Predict, color = Model), size = 1, 
+            data = previsão_bmi) + 
+  # geom_line(aes(x = Date, y = ARIMA, color = 'SARIMA'), size = 1, 
+  #           data = previsão2) + 
+  geom_hline(size = 1, aes(yintercept = 25, color = 'Target')) +
+  annotate("text", 
+           x = ymd("2022-8-20"), 
+           y = 25,  
+           label = "Target", 
+           fontface = 'bold',
+           vjust = -.5) +
+  labs(color = 'Legend', y = 'Body mass index (BMI)') +
+  theme_light() + 
+  theme(
+    legend.background = element_blank(),
+    legend.direction = 'horizontal',
+    legend.position = 'top',
+    legend.text.align = 0,
+    legend.title.align = 1,
+    #plot.caption= element_text(size=9, 
+    #                           color=gray(.25),
+    #                           face="italic"),
+    #legend.position = 'top', 
+    aspect.ratio =  2/(1+sqrt(5))
+  )  +
+  scale_color_brewer(palette = 'Set1') +
+  scale_x_date(#limits = ymd(c("2020-03-25", "2021-01-05")),
+    expand = c(0.05,0,0,0),
+    date_breaks = "1 month",
+    minor_breaks = NULL,
+    date_labels = "%b")
+```
+
+
+## Esteira
 
 ### Primeiro Exercício
 
