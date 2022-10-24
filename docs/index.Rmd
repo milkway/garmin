@@ -402,20 +402,11 @@ treadmill_fitday_records %>%
 
 ### Sexto Exercício
 
-1. 5 min a 5 km/h
-2. 15 min a 7 km/h
-3. 5 min a 5 km/h
-4. 15 min a 7 km/h
-5. 5 min a 5 km/h
-6. 10 min a 7 km/h
-7. 5 min a 5 km/h
-
-
 
 ```{r}
 treadmill_summary_day %>% 
   filter(Laps != 'Summary') %>% 
-  filter(as.Date(timestamp) > "2022-09-02", as.Date(timestamp) <= "2022-10-20") %>% 
+  filter(as.Date(timestamp) > "2022-09-02", as.Date(timestamp) <= "2022-10-02") %>% 
   mutate(Laps = as.integer(Laps)) %>% 
   ggplot(aes(x = Laps, y = `Avg HR`, color = factor(as.Date(timestamp)))) +
   geom_point() + geom_line() + 
@@ -428,7 +419,7 @@ treadmill_summary_day %>%
 ```{r}
 treadmill_fitday_records %>% 
   mutate(Date = as.Date(timestamp)) %>% 
-  filter(Date > "2022-09-02",  as.Date(timestamp) <= "2022-10-20") %>% 
+  filter(Date > "2022-09-02",  as.Date(timestamp) <= "2022-10-02") %>% 
   group_by(Date) %>% 
   mutate(Time = as.numeric(timestamp - min(timestamp, na.rm = TRUE))) %>% 
   ggplot(aes(x = Time, y = heart_rate, color = factor(Date))) +
@@ -436,6 +427,34 @@ treadmill_fitday_records %>%
   geom_smooth(method = 'loess', formula = 'y ~ x', span = .25, se = FALSE) +
   theme_bw() + labs(y = 'Heart Rate', color = 'Date')
 ```
+
+### Livre
+
+```{r}
+treadmill_summary_day %>% 
+  filter(Laps != 'Summary') %>% 
+  filter(as.Date(timestamp) > "2022-10-02", as.Date(timestamp) <= "2023-10-20") %>% 
+  mutate(Laps = as.integer(Laps)) %>% 
+  ggplot(aes(x = Laps, y = `Avg HR`, color = factor(as.Date(timestamp)))) +
+  geom_point() + geom_line() + 
+  labs(color = 'Date') +
+  theme_bw()
+```
+
+
+
+```{r}
+treadmill_fitday_records %>% 
+  mutate(Date = as.Date(timestamp)) %>% 
+  filter(Date > "2022-10-02",  as.Date(timestamp) <= "2023-10-20") %>% 
+  group_by(Date) %>% 
+  mutate(Time = as.numeric(timestamp - min(timestamp, na.rm = TRUE))) %>% 
+  ggplot(aes(x = Time, y = heart_rate, color = factor(Date))) +
+  geom_point(alpha = .25) + 
+  geom_smooth(method = 'loess', formula = 'y ~ x', span = .25, se = FALSE) +
+  theme_bw() + labs(y = 'Heart Rate', color = 'Date')
+```
+
 
 
 ## Training Effect
@@ -471,7 +490,7 @@ reference_table <- tibble(
   Lim_Inf = c(5, 4, 3, 2, 1, 0),
   Lim_Sup = c(5.2, 5, 4, 3, 2, 1),
   xmin = range_date$Min,
-  xmax = range_date$Max,
+  xmax = range_date$Max + 15,
   Color =  c(rgb(255/255, 0, 53/255), 
              rgb(255/255, 158/255, 13/255), 
              rgb(114/255, 234/255, 36/255), 
@@ -527,8 +546,10 @@ treadmill_session %>%
     #axis.line = element_blank() 
     #axis.line = element_line(arrow = arrow())
     ) +
-  geom_vline(aes(xintercept = Date), color = 'red', size = 1, data = change_exercises_dates, alpha = .5)
-  #theme(plot.margin = margin(0,0,0,0))
+  geom_vline(aes(xintercept = Date), color = 'red', size = 1, data = change_exercises_dates, alpha = .5) +
+  coord_cartesian(xlim = c(range_date$Min, range_date$Max + 15), #
+                  clip = 'off') +
+  theme(plot.margin = margin(0,0,0,0))
   #geom_point(aes(x = Date, y = total_anaerobic_training_effect)) +
   #geom_line(aes(x = Date, y = total_anaerobic_training_effect))
 ```
@@ -541,7 +562,7 @@ treadmill_session %>%
   ggplot() +
   geom_point(aes(x = Date, y = total_calories)) +
   geom_line(aes(x = Date, y = total_calories)) +
-  theme_bw() +
+  theme_bw() + labs(y = "Total calories") +
   geom_vline(aes(xintercept = Date), color = 'red', size = 1, data = change_exercises_dates, alpha = .5)
   
 ```
