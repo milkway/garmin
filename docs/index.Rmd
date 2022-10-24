@@ -32,6 +32,7 @@ suppressPackageStartupMessages({
   library(fable)
   library(tsibble)
   library(tsibbledata)
+  library(leaflet)
   })
 
 ```
@@ -41,6 +42,7 @@ suppressPackageStartupMessages({
 ```{r}
 treadmill_summary_day <- read_rds("../data/treadmill_summary_day.rds")
 treadmill_fitday_records <- read_rds("../data/treadmill_fitday_records.rds")
+trek_fitday_records <- read_rds("../data/trek_fitday_records.rds")
 treadmill_session <- read_rds("../data/treadmill_session.rds")
 change_exercises_dates <- read_rds("../data/change_exercises_dates.rds")
 
@@ -622,4 +624,18 @@ info_session  %>%
                                         fill="white"))+
   geom_vline(aes(xintercept = Date), color = 'red', size = 1, data = change_exercises_dates, alpha = .5)
 ```
+
+
+## Caminhadas
+
+
+```{r}
+trek_fitday_records %>% 
+  leaflet() %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addPolylines(lng = ~position_long, lat = ~position_lat, color = "red")
+
+```
+
+
 

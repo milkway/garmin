@@ -10,7 +10,7 @@ treadmill_session <- read_rds("data/treadmill_session.rds") %>% distinct()
 # Data from: https://connect.garmin.com/modern/
 # Read fit files: remotes::install_github("grimbough/FITfileR")
 # 9773017029
-treadmill_summary_day_new <- read_csv("data/activity_9662876310.csv",
+treadmill_summary_day_new <- read_csv("data/activity_9773017029.csv",
                  col_types = cols(Laps = col_character(), 
                                   Time = col_character(), `Cumulative Time` = col_character(), 
                                   `Avg Pace` = col_character(), `Total Ascent` = col_skip(), 
@@ -62,6 +62,54 @@ write_rds(labels_exercises, "labels_exercises.rds")
 #   atr
 # }
 
+## Trek
+# 
+# trek_summary_day_new <- read_csv("data/activity_9773017029.csv",
+#                                  col_types = cols(
+#                                    Laps = col_character(),
+#                                    Time = col_time(format = ""),
+#                                    `Cumulative Time` = col_time(format = ""),
+#                                    Distance = col_double(),
+#                                    `Avg Pace` = col_time(format = ""),
+#                                    `Avg HR` = col_double(),
+#                                    `Max HR` = col_double(),
+#                                    `Total Ascent` = col_double(),
+#                                    `Total Descent` = col_double(),
+#                                    `Avg Run Cadence` = col_double(),
+#                                    Calories = col_double(),
+#                                    `Avg Temperature` = col_double(),
+#                                    `Best Pace` = col_time(format = ""),
+#                                    `Max Run Cadence` = col_double(),
+#                                    `Moving Time` = col_time(format = ""),
+#                                    `Avg Moving Pace` = col_time(format = "")
+#                                  ))
+# 
+# trek_fitday <- readFitFile(fileName = "data/9773017029_ACTIVITY.fit")
+# 
+# trek_fitday_records <- records(trek_fitday) %>%
+#   bind_rows() %>%
+#   arrange(timestamp) %>%
+#   mutate(across(starts_with("position"), ~ if_else(.x > 0, NA_real_, .x)))
+# 
+# 
+# trek_session <- getMessagesByType(trek_fitday, "session")
+# 
+# write_rds(trek_fitday_records, file = "data/trek_fitday_records.rds")
+# write_rds(trek_summary_day_new, file = "data/trek_summary_day.rds")
+# write_rds(trek_session, file = "data/trek_session.rds")
+# 
+# 
+# library(leaflet)
+# 
+# 
+# trek_fitday_records %>%
+#   leaflet() %>%
+#   #setView(lat =-7.270892769510834, lng = -37.388718303202566, zoom = 12) %>%
+#   #addTiles() %>%
+#   addProviderTiles(providers$CartoDB.Positron) %>%
+#   #addProviderTiles(providers$Esri.WorldImagery) %>%
+#   addPolylines(lng = ~position_long, lat = ~position_lat, color = "red")
+# 
 
 # tibble_units <- treadmill_session_new %>% 
 #   map(.f =  ColAttr, attrC="units", ifIsNull = "") %>% 
