@@ -314,3 +314,73 @@ fcst <- Weight_Base %>%
 fcst %>%
   forecast() %>%
   summary()
+
+
+####
+
+suppressWarnings({
+  suppressMessages({
+    raw <- read_csv("data/Weight_20221026.csv", show_col_types = FALSE)
+  })
+})
+
+
+datas <- raw %>% filter(is.na(Weight)) %>% select(Date = Time)
+
+
+pesos <- datas %>% bind_cols(raw %>% 
+                               filter(!is.na(Weight)) %>% 
+                               select(Time:BMI)) %>% 
+  mutate(Date = mdy(Date)) %>% 
+  mutate(Weight_num = as.numeric(str_remove(Weight, ' kg')))
+
+
+
+
+model_1 <- lm(Weight_num ~ Date, data = pesos)
+model_2 <- lm(BMI ~ Date, data = pesos)
+
+arima <- pesos %>% 
+  select(Date, Weight = Weight_num, BMI) %>% 
+  as_tsibble(index = "Date") %>% 
+  fill_gaps() %>% 
+  model(
+    #ets = ETS(box_cox(Weight, 0.3)),
+    arima = ARIMA(Weight)
+    #snaive = SNAIVE(Weight)
+  )
+
+arima_bmi <- pesos %>% 
+  select(Date, BMI) %>% 
+  as_tsibble(index = "Date") %>% 
+  fill_gaps() %>% 
+  model(
+    #ets = ETS(box_cox(Weight, 0.3)),
+    arima = ARIMA(BMI)
+    #snaive = SNAIVE(Weight)
+  )
+
+previsão <- tibble(
+  Date = seq(ymd("2022-10-25"), ymd("2023-05-28"), by = '1 day')
+) %>% 
+  mutate(Predict = predict(model_1, newdata = .),
+         Model = 'Linear Regression') %>% 
+  bind_rows(arima %>% 
+              forecast(h = "256 days") %>%
+              as_tibble() %>% 
+              select(Date, Predict = .mean) %>% 
+              mutate(Model = 'ARIMA') %>% 
+              filter(Predict >= 100))
+
+previsão_bmi <- tibble(
+  Date = seq(ymd("2022-10-25"), ymd("2024-04-12"), by = '1 day')
+) %>% 
+  mutate(Predict = predict(model_2, newdata = .),
+         Model = 'Linear Regression') %>% 
+  bind_rows(arima_bmi %>% 
+              forecast(h = "351 days") %>%
+              as_tibble() %>% 
+              select(Date, Predict = .mean) %>% 
+              mutate(Model = 'ARIMA'))
+
+
