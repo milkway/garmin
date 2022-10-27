@@ -49,7 +49,7 @@ change_exercises_dates <- read_rds("../data/change_exercises_dates.rds")
 
 suppressWarnings({
   suppressMessages({
-  raw <- read_csv("../data/Weight.csv", show_col_types = FALSE)
+  raw <- read_csv("../data/Weight_20221024.csv", show_col_types = FALSE)
   })
 })
 
