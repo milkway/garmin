@@ -43,6 +43,7 @@ suppressPackageStartupMessages({
 treadmill_summary_day <- read_rds("../data/treadmill_summary_day.rds")
 treadmill_fitday_records <- read_rds("../data/treadmill_fitday_records.rds")
 trek_fitday_records <- read_rds("../data/trek_fitday_records.rds")
+run_fitday_records <- read_rds("../data/run_fitday_records.rds")
 treadmill_session <- read_rds("../data/treadmill_session.rds")
 change_exercises_dates <- read_rds("../data/change_exercises_dates.rds")
 
@@ -630,12 +631,55 @@ info_session  %>%
 
 
 ```{r}
-trek_fitday_records %>% 
-  leaflet() %>% 
-  addProviderTiles(providers$CartoDB.Positron) %>% 
-  addPolylines(lng = ~position_long, lat = ~position_lat, color = "red")
+pal <- colorNumeric(
+  palette = "BuPu", #"YlOrRd",
+  domain = trek_fitday_records$speed)
+
+base <- trek_fitday_records %>%
+  mutate(color = pal(speed),
+         next_lng = lead(position_long),
+         next_lat = lead(position_lat)) %>% 
+  filter(!is.na(next_lat))
+map <-  base %>% 
+  leaflet() %>%
+  #setView(lat = -7.27189470967143, lng = -37.38794673121044, zoom = 17) %>%
+  addProviderTiles(providers$CartoDB.Positron) 
+
+    
+for (i in 1:nrow(base)) {
+  map <- map %>% addPolylines(lng = as.numeric(base[i, c('position_long', 'next_lng')]), 
+                              lat = as.numeric(base[i, c('position_lat', 'next_lat')]), 
+                               color = as.character(base[i, c('color')])
+  )
+}
+
+map
 
 ```
 
 
+```{r}
+pal <- colorNumeric(
+  palette = "BuPu", #"YlOrRd",
+  domain = run_fitday_records$speed)
 
+base <- run_fitday_records %>%
+  mutate(color = pal(speed),
+         next_lng = lead(position_long),
+         next_lat = lead(position_lat)) %>% 
+  filter(!is.na(next_lat))
+map <-  base %>% 
+  leaflet() %>%
+  setView(lat = -7.27189470967143, lng = -37.38794673121044, zoom = 17) %>%
+  addProviderTiles(providers$Esri.WorldImagery) 
+    
+    
+for (i in 1:nrow(base)) {
+  map <- map %>% addPolylines(lng = as.numeric(base[i, c('position_long', 'next_lng')]), 
+                              lat = as.numeric(base[i, c('position_lat', 'next_lat')]), 
+                               color = as.character(base[i, c('color')])
+  )
+}
+
+map
+```
