@@ -335,12 +335,21 @@ pesos <- datas %>% bind_cols(raw %>%
   mutate(Weight_num = as.numeric(str_remove(Weight, ' kg')))
 
 
-
+pesos <- raw %>% mutate(Weight = lead(Weight),
+                        BMI = lead(BMI),
+                        Change = lead(Change)) %>%
+  filter(!is.na(Weight), str_detect(Time,  "\\d{4}")) %>%
+  select(Time, Weight, Change, BMI)  %>% 
+  mutate(#Date = as.Date(Time, format = "%b %d, %Y"),
+    Date = ymd(Time),
+    Weight_num = as.numeric(str_remove(Weight, '\\skg')),
+    Change_num = as.numeric(str_remove(Change, '\\skg|--')))
 
 model_1 <- lm(Weight_num ~ Date, data = pesos)
 model_2 <- lm(BMI ~ Date, data = pesos)
 
 arima <- pesos %>% 
+  filter(Date >= "2022-08-22") %>%
   select(Date, Weight = Weight_num, BMI) %>% 
   as_tsibble(index = "Date") %>% 
   fill_gaps() %>% 
@@ -361,7 +370,7 @@ arima_bmi <- pesos %>%
   )
 
 previsão <- tibble(
-  Date = seq(ymd("2022-10-25"), ymd("2023-05-28"), by = '1 day')
+  Date = seq(ymd("2022-12-22"), ymd("2023-05-28"), by = '1 day')
 ) %>% 
   mutate(Predict = predict(model_1, newdata = .),
          Model = 'Linear Regression') %>% 
